@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Poliglotar 26 · painel</title>
+<style>
+:root{
+  --preto:#000; --carvao:#0e100c; --linha:#262a22; --branco:#fff;
+  --verde:#67AB27; --verde-claro:#8FCC4C; --cinza:#8d9382; --alerta:#E0A030;
+  --sans:"Segoe UI Variable Display","Segoe UI",system-ui,sans-serif;
+  --mono:ui-monospace,"Cascadia Mono",Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--preto);color:var(--branco);font-family:var(--sans);overflow:hidden}
+.tela{position:fixed;inset:0;display:none;flex-direction:column;padding:4vh 5vw;overflow:auto}
+.tela.on{display:flex}
+.eyebrow{font-size:1.5vh;letter-spacing:.22em;text-transform:uppercase;color:var(--cinza);
+  font-weight:650;margin-bottom:1.5vh}
+h1{font-size:6vh;line-height:1.05;margin:0 0 3vh;letter-spacing:-.02em;font-weight:700}
+.num-gigante{font-size:34vh;line-height:.85;font-weight:800;font-variant-numeric:tabular-nums;
+  color:var(--verde-claro);letter-spacing:-.04em}
+.legenda{font-size:3.4vh;color:var(--cinza);margin-top:2vh}
+.centro{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+
+/* Um grupo por linha, ocupando a largura toda. Ele fica mais alto de propósito:
+   o Victor passa cerca de um minuto em cada, lendo os nomes em voz alta e
+   rolando devagar. Ver o próprio nome grande é a parte que motiva. */
+.grupos{display:grid;gap:2.4vh;grid-template-columns:1fr;align-content:start;padding-bottom:6vh}
+.grupo{background:var(--carvao);border:1px solid var(--linha);border-radius:12px;padding:3vh 2.6vw}
+.cab{display:flex;align-items:baseline;gap:1.4vw;flex-wrap:wrap;margin-bottom:2.2vh}
+.grupo h2{font-size:5vh;margin:0;color:var(--verde-claro);letter-spacing:-.02em;line-height:1}
+.grupo .n{font-size:2.4vh;color:var(--cinza)}
+.nomes{display:grid;grid-template-columns:repeat(auto-fill,minmax(15vw,1fr));
+  gap:1.5vh 2vw;font-size:3.6vh;line-height:1.15;font-weight:600}
+.nomes span{white-space:nowrap;display:flex;align-items:baseline;gap:.7vw}
+.nomes i{font-family:var(--mono);font-style:normal;font-size:2vh;font-weight:400;
+  color:var(--verde);opacity:.75;min-width:2.4ch;text-align:right;font-variant-numeric:tabular-nums}
+.metas{margin-top:2.6vh;padding-top:1.8vh;border-top:1px solid var(--linha);
+  display:flex;gap:3.5vw;flex-wrap:wrap}
+.meta .v{font-size:3.6vh;font-weight:700;font-variant-numeric:tabular-nums;color:var(--branco)}
+.meta .k{font-size:1.8vh;color:var(--cinza);letter-spacing:.04em}
+.sozinho{border-color:var(--alerta)}
+.sozinho h2{color:var(--alerta)}
+
+table{width:100%;border-collapse:collapse;font-size:2.6vh}
+th,td{text-align:left;padding:1.3vh 1vw;border-bottom:1px solid var(--linha)}
+th{font-size:1.6vh;letter-spacing:.14em;text-transform:uppercase;color:var(--cinza);font-weight:650}
+td.n{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.entra td{color:var(--verde-claro);font-weight:650}
+tr.entra td.badge::after{content:" ✓ entra";color:var(--verde);font-size:.8em}
+tr.top3 td.badge::after{content:" · top 3";color:var(--alerta);font-size:.8em}
+
+.rodape{position:fixed;left:0;right:0;bottom:0;padding:1.2vh 5vw;display:flex;gap:2vw;
+  align-items:center;font-size:1.6vh;color:var(--cinza);background:linear-gradient(transparent,#000 40%)}
+.rodape b{color:var(--verde-claro);font-variant-numeric:tabular-nums}
+.pontos{display:flex;gap:.6vw;margin-left:auto}
+.pontos i{width:1vh;height:1vh;border-radius:50%;background:var(--linha);display:block}
+.pontos i.on{background:var(--verde)}
+
+#config{position:fixed;inset:0;background:#000;padding:5vh 6vw;overflow:auto;font-size:16px;z-index:20}
+#config h2{font-size:26px;margin:0 0 6px}
+#config p{color:var(--cinza);max-width:70ch;line-height:1.5}
+#config textarea{width:100%;height:26vh;background:var(--carvao);color:var(--branco);
+  border:1px solid var(--linha);border-radius:8px;padding:12px;font-family:var(--mono);font-size:13px}
+#config input{width:100%;padding:11px 12px;background:var(--carvao);color:var(--branco);
+  border:1px solid var(--linha);border-radius:8px;font-size:15px;font-family:var(--mono)}
+#config button{background:var(--verde);color:#08140a;border:0;border-radius:8px;padding:12px 20px;
+  font-size:16px;font-weight:700;font-family:inherit;cursor:pointer;margin-right:10px}
+#config button.sec{background:transparent;color:var(--verde-claro);border:1px solid var(--verde)}
+.aviso{color:var(--alerta);font-size:14px;margin-top:8px}
+</style>
+</head>
+<body>
+
+<!-- 0 · entrada: QR + endereço -->
+<section class="tela" id="t0">
+  <div class="eyebrow" id="ebEvento">Poliglotar 26 · monte o seu grupo de estudos</div>
+  <div class="centro">
+    <h1 style="font-size:5.5vh;margin-bottom:4vh">Dois minutos. Comece por aqui.</h1>
+    <img id="qrImg" src="qr.png" alt="" style="width:34vh;height:34vh;background:#fff;
+         border-radius:1.5vh;padding:1.5vh;display:none">
+    <div id="urlGrande" style="font-size:4.2vh;font-weight:700;margin-top:3vh;
+         letter-spacing:-.01em;color:var(--verde-claro);word-break:break-all"></div>
+    <div class="legenda" style="font-size:2.4vh">aponte a câmera, ou digite o endereço</div>
+  </div>
+</section>
+
+<!-- 1 · contador -->
+<section class="tela" id="t1">
+  <div class="eyebrow">Poliglotar 26 · monte o seu grupo de estudos</div>
+  <div class="centro">
+    <div class="num-gigante" id="contador">0</div>
+    <div class="legenda" id="contadorLab">respostas</div>
+  </div>
+</section>
+
+<!-- 2 · grupos -->
+<section class="tela" id="t2">
+  <div class="eyebrow">Grupos de estudo</div>
+  <h1>Estes grupos existem a partir de hoje</h1>
+  <div class="grupos" id="grupos"></div>
+</section>
+
+<!-- 3 · novos idiomas -->
+<section class="tela" id="t3">
+  <div class="eyebrow">Idiomas que a Fluency ainda não tem</div>
+  <h1>O que a gente vai adicionar</h1>
+  <table>
+    <thead><tr><th>Idioma</th><th>Pessoas</th><th>Faltam</th><th></th></tr></thead>
+    <tbody id="novos"></tbody>
+  </table>
+  <p style="font-size:2.1vh;color:var(--cinza);margin-top:2vh">
+    <b style="color:var(--verde-claro)">5 pessoas</b> na comunidade Poliglotar e o idioma entra até o fim de outubro.
+    Os <b style="color:var(--alerta)">3 mais votados</b> entram de qualquer forma.
+  </p>
+</section>
+
+<!-- 4 · total da sala -->
+<section class="tela" id="t4">
+  <div class="eyebrow">Esta sala, nos próximos 12 meses</div>
+  <div class="centro">
+    <div class="num-gigante" id="totalHoras">0</div>
+    <div class="legenda">horas de estudo que vocês acabaram de combinar</div>
+    <div class="legenda" style="font-size:2.4vh;margin-top:3vh" id="totalDetalhe"></div>
+  </div>
+</section>
+
+<!-- 5 · números da sala -->
+<section class="tela" id="t5">
+  <div class="eyebrow">Números desta sala</div>
+  <h1>Quem está aqui</h1>
+  <div class="grupos curios" id="curiosidades"></div>
+</section>
+
+<div class="rodape">
+  <span>← → para navegar · <b>D</b> dados · <b>T</b> teste · <b>F</b> congelar</span>
+  <span id="status"></span>
+  <span class="pontos" id="pontos"></span>
+</div>
+
+<!-- config -->
+<div id="config">
+  <h2>Dados do painel</h2>
+  <p>Duas formas. A de cima é automática; a de baixo nunca falha.</p>
+
+  <h3 style="margin-bottom:4px">1 · URL do app da Web (Apps Script)</h3>
+  <p style="margin-top:0">O mesmo link que está no <code>index.html</code>. Ver
+     <b>apps_script.gs</b> para instalar. O painel relê sozinho a cada 6 segundos.</p>
+  <input id="csvUrl" placeholder="https://script.google.com/macros/s/AKfy.../exec">
+  <p><button id="ligarCsv">Ligar e atualizar sozinho</button>
+     <span class="aviso" id="csvAviso"></span></p>
+
+  <h3 style="margin-bottom:4px">2 · Colar os dados na mão</h3>
+  <p style="margin-top:0">Sem internet? Abra a planilha, selecione tudo (Ctrl+A), copie e cole aqui.</p>
+  <textarea id="colado" placeholder="Cole aqui o conteúdo da planilha…"></textarea>
+  <p>
+    <button id="usarColado">Usar estes dados</button>
+    <button class="sec" id="gerarTeste">Gerar 22 respostas de teste</button>
+    <button class="sec" id="fechar">Fechar</button>
+  </p>
+  <p style="font-size:13px">As colunas são detectadas pelo formato, não pelo nome — a ordem das
+     perguntas no formulário pode mudar sem quebrar nada.</p>
+</div>
+
+<script src="dados.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+let respostas = [];      // {nome, tempos:{cod:min}, livres:[str]}
+let tela = 0, csvTimer = null, congelado = false, aberto = true;
+const TELAS = ["t0","t1","t2","t3","t4","t5"];
+
+/* ---------- parsing ---------- */
+function parseDelim(txt){
+  const linhas = txt.trim().split(/\r?\n/).filter(l => l.trim());
+  if (!linhas.length) return [];
+  const sep = (linhas[0].match(/\t/g)||[]).length > (linhas[0].match(/,/g)||[]).length ? "\t" : ",";
+  return linhas.map(l => {
+    const out = []; let cur = "", dentro = false;
+    for (let i=0;i<l.length;i++){
+      const c = l[i];
+      if (c === '"') { if (dentro && l[i+1] === '"'){ cur += '"'; i++; } else dentro = !dentro; }
+      else if (c === sep && !dentro) { out.push(cur); cur = ""; }
+      else cur += c;
+    }
+    out.push(cur); return out.map(s => s.trim());
+  });
+}
+
+/* Detecta as colunas pelo FORMATO do conteúdo, não pelo cabeçalho. */
+function interpretar(linhas){
+  if (linhas.length < 2) return [];
+  const corpo = linhas.slice(1);
+  const nCols = Math.max(...corpo.map(r => r.length));
+  const pont = Array.from({length:nCols}, () => ({tempos:0, idiomas:0, nome:0}));
+  const reTempos = /^[a-z]{2,6}:\d+(,[a-z]{2,6}:\d+)*$/i;
+  corpo.forEach(r => {
+    for (let c=0;c<nCols;c++){
+      const v = (r[c]||"").trim(); if (!v) continue;
+      if (reTempos.test(v)) pont[c].tempos++;
+      else if (/^([a-z]{2,6}|livre:[^,]+)(,([a-z]{2,6}|livre:[^,]+))*$/i.test(v) && v.length < 120) pont[c].idiomas++;
+      else if (/^[\p{L}][\p{L}\s'.-]{1,40}$/u.test(v) && !v.includes("@")) pont[c].nome++;
+    }
+  });
+  const melhor = k => pont.reduce((b,p,i) => p[k] > (pont[b]||{})[k] ? i : b, 0);
+  const cT = melhor("tempos"), cI = melhor("idiomas"), cN = melhor("nome");
+  return corpo.map((r,idx) => {
+    const tempos = {}; const livres = [];
+    (r[cT]||"").split(",").forEach(p => {
+      const [c,m] = p.split(":"); if (c && +m) tempos[c.trim()] = +m;
+    });
+    (r[cI]||"").split(",").forEach(p => {
+      p = p.trim();
+      if (p.toLowerCase().startsWith("livre:")) livres.push(p.slice(6).trim());
+      else if (p && !(p in tempos)) tempos[p] = tempos[p] || 0;
+    });
+    return { nome: (r[cN]||("Pessoa "+(idx+1))).trim(), tempos, livres };
+  }).filter(r => Object.keys(r.tempos).length || r.livres.length);
+}
+
+/* Respostas vindas da API (JSON) — sem adivinhação de colunas. */
+function interpretarJson(lista){
+  /* Append-only na planilha: cada pessoa pode ter várias linhas porque mudou de
+     ideia depois de ver os grupos. Fica a ÚLTIMA de cada id — e, para linhas
+     antigas sem id, a última de cada nome normalizado. */
+  const ultima = new Map();
+  lista.forEach(r => {
+    const chave = String(r.id || "").trim() ||
+      ("nome:" + String(r.nome || "").trim().toLowerCase()
+        .normalize("NFD").replace(/[̀-ͯ]/g, ""));
+    ultima.set(chave, r);
+  });
+  return [...ultima.values()].map((r,idx) => {
+    const tempos = {}, livres = [];
+    String(r.tempos || "").split(",").forEach(par => {
+      const [c,m] = par.split(":");
+      if (c && +m) tempos[c.trim()] = +m;
+    });
+    String(r.idiomas || "").split(",").forEach(x => {
+      x = x.trim();
+      if (x.toLowerCase().startsWith("livre:")) {
+        /* Rede de segurança: se o que foi escrito casa com um idioma conhecido,
+           conta como esse idioma. Senão o mesmo idioma se parte em dois. */
+        const achado = acharIdioma(x.slice(6));
+        if (achado) { if (!(achado.cod in tempos)) tempos[achado.cod] = 0; }
+        else livres.push(x.slice(6).trim());
+      }
+      else if (x && !(x in tempos)) tempos[x] = tempos[x] || 0;
+    });
+    return { nome: String(r.nome || ("Pessoa " + (idx+1))).trim(), tempos, livres };
+  }).filter(r => Object.keys(r.tempos).length || r.livres.length);
+}
+
+/* ---------- agregação ---------- */
+function agregar(){
+  const por = {};   // cod -> {pessoas:[nome], minutos}
+  respostas.forEach(r => {
+    Object.entries(r.tempos).forEach(([cod,min]) => {
+      (por[cod] = por[cod] || {pessoas:[], minutos:0});
+      por[cod].pessoas.push(r.nome); por[cod].minutos += min;
+    });
+    r.livres.forEach(l => {
+      const cod = "livre:" + l.toLowerCase();
+      (por[cod] = por[cod] || {pessoas:[], minutos:0, nome:l});
+      por[cod].pessoas.push(r.nome);
+    });
+  });
+  return por;
+}
+const nomeDe = cod => cod.startsWith("livre:")
+  ? cod.slice(6).replace(/^\p{L}/u, c => c.toUpperCase())
+  : (POR_CODIGO[cod] || {nome:cod}).nome;
+
+/* ---------- render ---------- */
+function render(){
+  const por = agregar();
+  $("#contador").textContent = respostas.length;
+  $("#contadorLab").textContent = respostas.length === 1 ? "resposta" : "respostas";
+
+  /* grupos: idiomas da Fluency com >= 2 pessoas, e os solitários em destaque */
+  const fluency = Object.entries(por)
+    .filter(([c]) => EH_FLUENCY.has(c))
+    .sort((a,b) => b[1].pessoas.length - a[1].pessoas.length);
+  const box = $("#grupos"); box.innerHTML = "";
+  fluency.forEach(([cod,d]) => {
+    const n = d.pessoas.length, so = n < LIMITE_FLUENCY;
+    const el = document.createElement("div");
+    el.className = "grupo" + (so ? " sozinho" : "");
+    const meta = metaAulasMensalPorPessoa(d.minutos, n);
+    const micro = microNiveisAno(cod, d.minutos, n);
+    el.innerHTML =
+      `<div class="cab"><h2>${nomeDe(cod)}</h2>` +
+      `<div class="n">${so ? "só uma pessoa — alguém topa?" : n + " pessoas"}</div></div>` +
+      `<div class="nomes">${d.pessoas.map((p,k) =>
+          `<span><i>${k+1}</i>${p}</span>`).join("")}</div>` +
+      (so ? "" :
+        `<div class="metas">
+           <div class="meta"><div class="v">${horasBonito(meta)}</div>
+             <div class="k">de aula por pessoa / mês</div></div>` +
+        /* Idioma escrito à mão não tem dado de dificuldade — mostrar "+0,0 níveis"
+           pareceria defeito. Melhor não mostrar a estatística. */
+        (horasPorMicroNivel(cod)
+          ? `<div class="meta"><div class="v">${niveisBonito(micro)}</div>
+               <div class="k">níveis por pessoa / ano</div></div>` : "") +
+        `</div>`);
+    box.appendChild(el);
+  });
+
+  /* novos idiomas */
+  const novos = Object.entries(por)
+    .filter(([c]) => !EH_FLUENCY.has(c))
+    .sort((a,b) => b[1].pessoas.length - a[1].pessoas.length);
+  const tb = $("#novos"); tb.innerHTML = "";
+  novos.forEach(([cod,d],i) => {
+    const n = d.pessoas.length, entra = n >= LIMITE_NOVO, top = i < TOP_NOVOS;
+    const tr = document.createElement("tr");
+    tr.className = entra ? "entra" : (top ? "top3" : "");
+    tr.innerHTML = `<td>${nomeDe(cod)}</td><td class="n">${n}</td>` +
+      `<td class="n">${entra ? "—" : (LIMITE_NOVO - n)}</td><td class="badge"></td>`;
+    tb.appendChild(tr);
+  });
+
+  /* total da sala */
+  const minDia = respostas.reduce((a,r) => a + Object.values(r.tempos).reduce((x,y)=>x+y,0), 0);
+  const horasAno = Math.round((minDia/60) * 365);
+  $("#totalHoras").textContent = horasAno.toLocaleString("pt-BR");
+  const pess = respostas.length || 1;
+  $("#totalDetalhe").textContent =
+    `${pess} ${pess===1?"pessoa":"pessoas"} · ${(minDia/pess).toFixed(0)} minutos por dia cada · ` +
+    `${Object.keys(por).length} idiomas nesta sala`;
+
+  /* ---- números da sala ---- */
+  const nPessoas = respostas.length || 1;
+  const porPessoa = respostas.map(r => Object.keys(r.tempos).length + r.livres.length);
+  const mediaIdiomas = porPessoa.reduce((a,b)=>a+b,0) / nPessoas;
+  let campeao = respostas[0] || {nome:"—"}, campeaoN = porPessoa[0] || 0;
+  respostas.forEach((r,i) => { if (porPessoa[i] > campeaoN) { campeao = r; campeaoN = porPessoa[i]; } });
+  const codigos = Object.keys(por);
+  const naFluency = codigos.filter(c => EH_FLUENCY.has(c)).length;
+  /* Quantas pessoas essas horas levariam do zero ao B2 em espanhol — converte
+     um número abstrato no resultado que o produto vende. Usa o DECLARADO, e a
+     legenda carrega o "se", porque isto não é previsão. */
+  const horasAnoDecl = (minDia/60) * 365;
+  const pessoasB2 = Math.floor(horasAnoDecl / POR_CODIGO.es.horasB2);
+
+  const cur = [
+    [String(codigos.length), "idiomas nesta sala", naFluency + " deles a Fluency já tem"],
+    [mediaIdiomas.toFixed(1).replace(".", ","), "idiomas por pessoa, em média", "a média do brasileiro é 1"],
+    [String(campeaoN), "idiomas — " + campeao.nome, "a pessoa mais poliglota da sala"],
+    [String(pessoasB2), "pessoas do zero ao B2 em espanhol",
+     "é o que estas horas dariam, se vocês cumprirem"],
+  ];
+  const boxC = $("#curiosidades");
+  if (boxC) {
+    boxC.innerHTML = cur.map(([v,k,sub]) =>
+      `<div class="grupo"><div class="v" style="font-size:9vh;font-weight:800;color:var(--verde-claro);
+         line-height:1;font-variant-numeric:tabular-nums">${v}</div>
+       <div style="font-size:2.6vh;margin-top:1vh">${k}</div>
+       <div style="font-size:1.9vh;color:var(--cinza);margin-top:.6vh">${sub}</div></div>`).join("");
+  }
+
+  $("#status").textContent =
+    (congelado ? "❄ CONGELADO — aperte F para voltar a atualizar · " : "") +
+    (!csvTimer && respostas.length ? "MODO TESTE (recarregue a página para voltar ao ao vivo) · " : "") +
+    (respostas.length ? `${respostas.length} respostas` : "sem dados") +
+    (aberto ? "" : " · respostas ENCERRADAS");
+}
+
+/* ---------- navegação ---------- */
+function mostrar(i){
+  tela = (i + TELAS.length) % TELAS.length;
+  TELAS.forEach((t,k) => $("#"+t).classList.toggle("on", k === tela));
+  $("#pontos").innerHTML = TELAS.map((_,k) => `<i class="${k===tela?"on":""}"></i>`).join("");
+}
+addEventListener("keydown", e => {
+  if ($("#config").style.display !== "none" && e.key !== "Escape") return;
+  if (e.key === "ArrowRight" || e.key === " ") { mostrar(tela+1); e.preventDefault(); }
+  if (e.key === "ArrowLeft") mostrar(tela-1);
+  if (e.key.toLowerCase() === "d") abrirConfig(true);
+  if (e.key === "Escape") abrirConfig(false);
+  if (e.key.toLowerCase() === "t") { gerarTeste(); }
+  if (e.key.toLowerCase() === "f") { congelado = !congelado; render(); }
+});
+
+function abrirConfig(v){ $("#config").style.display = v ? "block" : "none"; }
+$("#fechar").addEventListener("click", () => abrirConfig(false));
+
+/* ---------- fontes de dados ---------- */
+async function puxarCsv(url){
+  try {
+    const r = await fetch(url, {cache:"no-store"});
+    const txt = await r.text();
+    let novas = null;
+    /* API do Apps Script devolve JSON; uma planilha publicada devolve CSV.
+       Aceita os dois sem perguntar qual é. */
+    try {
+      const j = JSON.parse(txt);
+      if (j && j.respostas) { novas = interpretarJson(j.respostas); aberto = j.aberto !== false; }
+      else if (j && j.ok === false) throw new Error(j.erro || "erro na API");
+    } catch (naoEhJson) {
+      if (naoEhJson instanceof SyntaxError) novas = interpretar(parseDelim(txt));
+      else throw naoEhJson;
+    }
+    if (novas && !congelado) { respostas = novas; render(); $("#csvAviso").textContent = ""; }
+    else if (novas) { $("#csvAviso").textContent = ""; }
+  } catch (e) {
+    $("#csvAviso").textContent = "Não consegui ler esse link. " +
+      "Se for o Apps Script, confira se a implantação está como \"Qualquer pessoa\".";
+  }
+}
+$("#ligarCsv").addEventListener("click", () => {
+  const url = $("#csvUrl").value.trim(); if (!url) return;
+  localStorage.setItem("poliglotar_csv", url);
+  if (csvTimer) clearInterval(csvTimer);
+  puxarCsv(url); csvTimer = setInterval(() => puxarCsv(url), 6000);
+  abrirConfig(false);
+});
+$("#usarColado").addEventListener("click", () => {
+  respostas = interpretar(parseDelim($("#colado").value));
+  render(); abrirConfig(false);
+});
+
+/* ---------- dados de teste ---------- */
+const NOMES = ["Ana","Bruno","Carla","Diego","Elisa","Fábio","Gabi","Henrique","Iara","João",
+  "Kátia","Lucas","Marina","Nuno","Olívia","Paulo","Quésia","Rafa","Sofia","Tiago","Ualace","Vera"];
+function gerarTeste(){
+  /* Sem isto, a leitura automática a cada 6 s sobrescreve os dados de teste com
+     a planilha real (vazia) e a tela volta a zero — o ensaio fica impossível. */
+  if (csvTimer) { clearInterval(csvTimer); csvTimer = null; }
+  const pool = IDIOMAS_FLUENCY.map(i=>i.cod), extra = ["ar","tr","el","sv","he","nl"];
+  respostas = NOMES.map((nome,i) => {
+    const tempos = {}; const q = 1 + (i % 3);
+    for (let k=0;k<q;k++){
+      const cod = pool[(i*3+k*5) % pool.length];
+      tempos[cod] = [15,30,45,60,90][(i+k) % 5];
+    }
+    const livres = (i % 4 === 0) ? [ {ar:"Árabe",tr:"Turco",el:"Grego",sv:"Sueco",he:"Hebraico",nl:"Holandês"}[extra[i % extra.length]] ] : [];
+    if (livres.length) tempos[extra[i % extra.length]] = 20;
+    return { nome, tempos, livres:[] };
+  });
+  render(); abrirConfig(false);
+}
+$("#gerarTeste").addEventListener("click", gerarTeste);
+
+/* ---------- início ---------- */
+const salvo = localStorage.getItem("poliglotar_csv") || EVENTO.urlApi || "";
+if (salvo) { $("#csvUrl").value = salvo; puxarCsv(salvo); csvTimer = setInterval(() => puxarCsv(salvo), 6000); abrirConfig(false); }
+else abrirConfig(true);
+/* ---------- tela 0, a partir do EVENTO ---------- */
+(function entrada(){
+  document.querySelectorAll(".eyebrow").forEach(el => {
+    el.textContent = el.textContent.replace(/^Poliglotar 26/, EVENTO.nome + " " + EVENTO.ano);
+  });
+  const u = (EVENTO.urlCaptura || "").trim();
+  const alvo = $("#urlGrande");
+  if (u) {
+    alvo.textContent = u.replace(/^https?:\/\//, "");
+    const img = $("#qrImg");
+    img.onload = () => { img.style.display = "block"; };
+    img.onerror = () => { img.style.display = "none"; };
+    img.src = "qr.png?v=" + Date.now();
+  } else {
+    alvo.textContent = "— endereço ainda não definido —";
+    alvo.style.color = "var(--alerta)";
+    alvo.style.fontSize = "3vh";
+  }
+})();
+
+mostrar(0); render();
+</script>
+</body>
+</html>
