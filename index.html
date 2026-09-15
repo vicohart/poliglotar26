@@ -1,10 +1,419 @@
 <!doctype html>
-<html lang="pt-BR"><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Poliglotar 2026 - Natural Fluency</title>
-<style>body{font:16px/1.6 system-ui,sans-serif;margin:0;display:grid;place-items:center;
-min-height:100vh;background:#faf9f7;color:#1c1b19;padding:24px}main{max-width:32rem;text-align:center}
-h1{font-size:1.5rem;margin:0 0 .5rem}p{margin:.5rem 0;color:#54514c}</style>
-<main><h1>Poliglotar 2026</h1>
-<p>Pagina de captacao do workshop, sabado 19 de setembro, 16h.</p>
-<p>O conteudo final entra antes do evento. Este endereco ja e o definitivo.</p></main>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Poliglotar 26 · monte o seu grupo de estudos</title>
+<style>
+:root{
+  --preto:#000; --carvao:#111310; --linha:#2a2e26; --branco:#fff;
+  --verde:#67AB27; --verde-claro:#8FCC4C; --cinza:#9aa08f; --alerta:#E0A030;
+  --sans:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--preto);color:var(--branco);font-family:var(--sans);
+     font-size:17px;line-height:1.45;padding:0 0 140px}
+.wrap{max-width:560px;margin:0 auto;padding:22px 18px 0}
+h1{font-size:26px;line-height:1.15;margin:0 0 6px;letter-spacing:-.02em}
+h1 em{color:var(--verde);font-style:normal}
+.sub{color:var(--cinza);font-size:15px;margin:0 0 26px}
+label.q{display:block;font-weight:650;font-size:16px;margin:26px 0 4px}
+label.q .hint{display:block;font-weight:400;font-size:13.5px;color:var(--cinza);margin-top:2px}
+input[type=text],input[type=email]{width:100%;padding:13px 14px;font-size:17px;font-family:inherit;
+  background:var(--carvao);color:var(--branco);border:1px solid var(--linha);border-radius:8px}
+input:focus{outline:none;border-color:var(--verde)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.chip{padding:10px 14px;border-radius:999px;border:1px solid var(--linha);background:var(--carvao);
+  color:var(--branco);font-size:15.5px;font-family:inherit;cursor:pointer;user-select:none}
+.chip[aria-pressed=true]{background:var(--verde);border-color:var(--verde);color:#08140a;font-weight:650}
+.tempos{margin-top:14px;display:flex;flex-direction:column;gap:8px}
+.tempo{display:flex;align-items:center;gap:10px;background:var(--carvao);border:1px solid var(--linha);
+  border-radius:10px;padding:10px 12px}
+.tempo .nome{flex:1;font-weight:600}
+.tempo select{background:#000;color:var(--branco);border:1px solid var(--linha);border-radius:7px;
+  padding:9px 8px;font-size:16px;font-family:inherit}
+.total{position:fixed;left:0;right:0;bottom:0;background:#0a0c08;border-top:1px solid var(--linha);
+  padding:12px 18px calc(12px + env(safe-area-inset-bottom));z-index:9}
+.total .inner{max-width:560px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.total .num{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.total .lab{font-size:13px;color:var(--cinza);flex:1;line-height:1.25}
+button.enviar{background:var(--verde);color:#08140a;border:0;border-radius:9px;padding:13px 20px;
+  font-size:17px;font-weight:700;font-family:inherit;cursor:pointer}
+button.enviar[disabled]{opacity:.4;cursor:default}
+.aviso{margin-top:14px;border-left:3px solid var(--alerta);background:#221a0c;padding:14px 16px;
+  border-radius:0 8px 8px 0;display:none}
+.aviso.on{display:block}
+.aviso b{color:var(--alerta)}
+.aviso .acoes{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.aviso button{background:transparent;border:1px solid var(--alerta);color:var(--alerta);
+  border-radius:7px;padding:9px 14px;font-size:15px;font-family:inherit;cursor:pointer}
+.aviso button.sim{background:var(--alerta);color:#1a1206;font-weight:650;border-color:var(--alerta)}
+.consent{display:flex;gap:11px;align-items:flex-start;margin-top:12px;font-size:14.5px;color:var(--cinza)}
+.consent input{width:22px;height:22px;margin:1px 0 0;accent-color:var(--verde);flex:none}
+.pronto{text-align:center;padding:70px 20px}
+.pronto .tick{font-size:56px;color:var(--verde);line-height:1}
+.pronto h2{font-size:24px;margin:14px 0 8px}
+.pronto p{color:var(--cinza);margin:0 auto;max-width:30ch}
+.erro{color:#E0806A;font-size:14px;margin-top:8px;display:none}
+.erro.on{display:block}
+#setup{display:none;padding:20px;font-size:14px}
+#setup textarea{width:100%;height:110px;background:var(--carvao);color:var(--branco);
+  border:1px solid var(--linha);border-radius:8px;padding:10px;font-family:ui-monospace,monospace;font-size:13px}
+#setup pre{background:var(--carvao);border:1px solid var(--linha);border-radius:8px;padding:12px;
+  overflow-x:auto;font-size:12px;white-space:pre-wrap;word-break:break-all}
+</style>
+</head>
+<body>
+
+<div class="wrap" id="app">
+  <h1 id="titulo"></h1>
+  <p class="sub">Dois minutos. No fim da tarde a gente monta os grupos de estudo com o que você responder aqui.</p>
+
+  <label class="q" for="nome">Seu nome
+    <span class="hint">Como você quer aparecer no grupo.</span></label>
+  <input type="text" id="nome" autocomplete="name" maxlength="60">
+
+  <label class="q">Quais idiomas você estuda ou quer começar?
+    <span class="hint">Pode marcar quantos quiser.</span></label>
+  <div class="chips" id="chipsFluency"></div>
+
+  <label class="q">E algum destes?
+    <span class="hint">Estes a Fluency ainda não tem. É assim que a gente descobre quais adicionar.</span></label>
+  <div class="chips" id="chipsOutros"></div>
+  <input type="text" id="outroLivre" placeholder="Outro idioma? Escreva e aperte Enter" maxlength="60" style="margin-top:10px">
+  <div id="dicaLivre" style="font-size:13.5px;color:var(--cinza);margin-top:7px"></div>
+
+  <label class="q" id="lblTempos" style="display:none">Quanto tempo por dia para cada um?
+    <span class="hint">Seja honesto. O grupo vai contar com isso.</span></label>
+  <div class="tempos" id="tempos"></div>
+
+  <div class="aviso" id="aviso">
+    <b>Espera aí.</b> Isso dá <b><span id="avisoTotal"></span> por dia</b>, todo dia, o ano inteiro.
+    <div style="margin-top:8px;color:var(--cinza);font-size:14.5px">
+      Dá pra fazer de verdade, com trabalho, família e o resto da vida?
+      Um grupo que combina o que não consegue cumprir desanima todo mundo junto.
+    </div>
+    <div class="acoes">
+      <button type="button" class="sim" id="confirmo">Consigo, sim</button>
+      <button type="button" id="ajustar">Vou ajustar</button>
+    </div>
+  </div>
+
+  <label class="q" for="email">Seu e-mail
+    <span class="hint">Para te mandar o link do seu grupo depois do Poliglotar.</span></label>
+  <input type="email" id="email" autocomplete="email" inputmode="email" maxlength="120">
+
+  <label class="consent">
+    <input type="checkbox" id="criarConta">
+    <span>Podem já criar minha conta na Natural Fluency com este e-mail.</span>
+  </label>
+
+  <div class="erro" id="erro"></div>
+</div>
+
+<div class="total" id="barra">
+  <div class="inner">
+    <div class="num" id="totalNum">0 min</div>
+    <div class="lab" id="totalLab">por dia, somando tudo</div>
+    <button class="enviar" id="enviar" disabled>Enviar</button>
+  </div>
+</div>
+
+<div id="setup"></div>
+
+<script src="dados.js"></script>
+<script>
+/* ============================================================
+   API — o URL do app da Web do Apps Script (ver apps_script.gs).
+   Cole entre as aspas. Para testar sem editar o arquivo, abra
+   esta página com ?setup=1 e cole o URL lá.
+   ============================================================ */
+let API_URL = EVENTO.urlApi || "";
+try { API_URL = localStorage.getItem("poliglotar_api") || API_URL; } catch(e){}
+
+/* Identidade do aparelho. Serve para a pessoa PODER MUDAR a resposta depois de
+   ver os grupos se formando: o painel fica com a última linha de cada id.
+   É por aparelho, e não por nome, porque numa sala de 50 pessoas duas Anas
+   não são a mesma pessoa. */
+let MEU_ID = "";
+let ULTIMA = null;
+try {
+  MEU_ID = localStorage.getItem("poliglotar_id") || "";
+  if (!MEU_ID) {
+    MEU_ID = "d" + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+    localStorage.setItem("poliglotar_id", MEU_ID);
+  }
+  ULTIMA = JSON.parse(localStorage.getItem("poliglotar_ultima") || "null");
+} catch(e){}
+
+/* ---------- título vindo do EVENTO ---------- */
+(function(){
+  const t = EVENTO.titulo || "";
+  const i = t.lastIndexOf(" não ");
+  document.getElementById("titulo").innerHTML = i > 0
+    ? t.slice(0, i) + " <em>" + t.slice(i + 1) + "</em>"
+    : t;
+})();
+
+/* ---------- estado ---------- */
+const sel = new Set();
+const minutos = {};          // cod -> minutos/dia
+let confirmouExcesso = false;
+const LIMITE_AVISO = 180;    // 3 h/dia
+
+const $ = s => document.querySelector(s);
+const fmt = m => m >= 60 ? `${Math.floor(m/60)}h${String(m%60).padStart(2,"0")}` : `${m} min`;
+
+const OPCOES_MIN = [10,15,20,30,45,60,90,120,180,240];
+
+function montarChips(alvo, lista){
+  const box = $(alvo);
+  lista.forEach(i => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "chip"; b.textContent = i.nome;
+    b.setAttribute("aria-pressed","false"); b.dataset.cod = i.cod;
+    b.addEventListener("click", () => {
+      const on = b.getAttribute("aria-pressed") === "true";
+      b.setAttribute("aria-pressed", String(!on));
+      if (on) { sel.delete(i.cod); delete minutos[i.cod]; }
+      else    { sel.add(i.cod);   minutos[i.cod] = 30; }
+      render();
+    });
+    box.appendChild(b);
+  });
+}
+montarChips("#chipsFluency", IDIOMAS_FLUENCY.filter(i => i.cod !== "pt").concat(POR_CODIGO.pt));
+montarChips("#chipsOutros", IDIOMAS_OUTROS);
+
+/* Idiomas escritos à mão. Se o que a pessoa escreveu já existe na lista, o campo
+   vira uma busca e marca o chip — assim "Turco" digitado e "Turco" tocado são a
+   MESMA coisa. Se não existe (guarani, por exemplo), vira um chip próprio, com
+   linha de tempo igual a todos os outros. */
+const LIVRES = new Map();   // "livre:guarani" -> "Guarani"
+
+function nomeDoCodigo(cod){
+  if (LIVRES.has(cod)) return LIVRES.get(cod);
+  return (POR_CODIGO[cod] || {nome:cod}).nome;
+}
+
+function adicionarEscrito(){
+  const campo = $("#outroLivre");
+  const txt = campo.value.trim();
+  if (!txt) return;
+  const achado = acharIdioma(txt);
+  if (achado) {
+    sel.add(achado.cod);
+    if (!minutos[achado.cod]) minutos[achado.cod] = 30;
+    const chip = document.querySelector('.chip[data-cod="' + achado.cod + '"]');
+    if (chip) chip.setAttribute("aria-pressed","true");
+    $("#dicaLivre").textContent = achado.nome + " marcado na lista acima.";
+  } else {
+    const cod = "livre:" + normalizar(txt);
+    const bonito = txt.charAt(0).toUpperCase() + txt.slice(1);
+    LIVRES.set(cod, bonito);
+    sel.add(cod);
+    if (!minutos[cod]) minutos[cod] = 30;
+    $("#dicaLivre").textContent = bonito + " adicionado. A gente ainda não tem — é assim que a gente fica sabendo.";
+  }
+  campo.value = "";
+  render();
+}
+$("#outroLivre").addEventListener("keydown", e => {
+  if (e.key === "Enter") { e.preventDefault(); adicionarEscrito(); }
+});
+$("#outroLivre").addEventListener("blur", adicionarEscrito);
+$("#outroLivre").addEventListener("input", () => {
+  const achado = acharIdioma($("#outroLivre").value);
+  $("#dicaLivre").textContent = achado ? "Enter para marcar " + achado.nome : "";
+});
+
+function render(){
+  /* linhas de tempo, na ordem em que foram escolhidas */
+  const box = $("#tempos"); box.innerHTML = "";
+  $("#lblTempos").style.display = sel.size ? "block" : "none";
+  [...sel].forEach(cod => {
+    const linha = document.createElement("div"); linha.className = "tempo";
+    const nome = document.createElement("div"); nome.className = "nome";
+    nome.textContent = nomeDoCodigo(cod);
+    const s = document.createElement("select");
+    OPCOES_MIN.forEach(v => {
+      const o = document.createElement("option");
+      o.value = v; o.textContent = fmt(v) + "/dia";
+      if (v === minutos[cod]) o.selected = true;
+      s.appendChild(o);
+    });
+    s.addEventListener("change", e => { minutos[cod] = +e.target.value; confirmouExcesso = false; render(); });
+    linha.appendChild(nome); linha.appendChild(s); box.appendChild(linha);
+  });
+
+  const total = Object.values(minutos).reduce((a,b) => a+b, 0);
+  $("#totalNum").textContent = fmt(total);
+  $("#totalLab").textContent = sel.size > 1
+    ? `por dia, somando ${sel.size} idiomas`
+    : "por dia, somando tudo";
+
+  const excesso = total > LIMITE_AVISO;
+  $("#aviso").classList.toggle("on", excesso && !confirmouExcesso);
+  $("#avisoTotal").textContent = fmt(total);
+  $("#totalNum").style.color = excesso ? "var(--alerta)" : "var(--branco)";
+
+  const ok = $("#nome").value.trim().length >= 2 && sel.size >= 1 &&
+             (!excesso || confirmouExcesso);
+  $("#enviar").disabled = !ok;
+}
+$("#nome").addEventListener("input", render);
+$("#confirmo").addEventListener("click", () => { confirmouExcesso = true; render(); });
+$("#ajustar").addEventListener("click", () => {
+  confirmouExcesso = false;
+  $("#tempos").scrollIntoView({behavior:"smooth", block:"center"});
+});
+
+/* ---------- envio ---------- */
+function payload(){
+  const codigos = [...sel];
+  const total = Object.values(minutos).reduce((a,b) => a+b, 0);
+  return {
+    id: MEU_ID,
+    nome: $("#nome").value.trim(),
+    idiomas: codigos.join(","),
+    tempos: Object.entries(minutos).map(([c,m]) => `${c}:${m}`).join(","),
+    total: String(total),
+    confirmou: confirmouExcesso ? "sim" : "",
+    email: $("#email").value.trim(),
+    criarConta: $("#criarConta").checked ? "sim" : "",
+    carimbo: new Date().toISOString()
+  };
+}
+
+$("#enviar").addEventListener("click", async () => {
+  const p = payload();
+  $("#enviar").disabled = true; $("#enviar").textContent = "Enviando…";
+
+  /* guarda local sempre — se o envio falhar, o dado ainda existe neste aparelho */
+  try {
+    const fila = JSON.parse(localStorage.getItem("poliglotar_fila") || "[]");
+    fila.push(p); localStorage.setItem("poliglotar_fila", JSON.stringify(fila));
+  } catch(e){}
+
+  if (!API_URL) {
+    $("#erro").textContent = "Modo de teste: resposta guardada só neste aparelho (API ainda não configurada).";
+    $("#erro").classList.add("on");
+    return pronto();
+  }
+  try {
+    /* text/plain evita o preflight do CORS; o Apps Script lê o corpo cru. */
+    const r = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(p)
+    });
+    const j = await r.json();
+    if (j.erro === "fechado") return fechado();
+    if (!j.ok) throw new Error(j.erro || "resposta negada");
+    lembrar(p);
+    pronto();
+  } catch (err) {
+    $("#erro").textContent = "Não deu para enviar. Sua resposta ficou salva neste aparelho — chame alguém da equipe.";
+    $("#erro").classList.add("on");
+    $("#enviar").disabled = false; $("#enviar").textContent = "Tentar de novo";
+  }
+});
+
+function lembrar(p){
+  try { localStorage.setItem("poliglotar_ultima", JSON.stringify(p)); } catch(e){}
+}
+
+function pronto(){
+  const atualizou = !!ULTIMA;
+  $("#app").innerHTML =
+    '<div class="pronto"><div class="tick">✓</div>' +
+    '<h2>' + (atualizou ? 'Atualizado!' : 'Pronto!') + '</h2>' +
+    '<p>' + (atualizou
+      ? 'A tela já está com a sua resposta nova.'
+      : 'Agora é só esperar. Daqui a pouco o seu nome aparece na tela, junto com quem estuda o mesmo que você.') +
+    '</p>' +
+    '<p style="margin-top:18px;font-size:14.5px">Viu um grupo que te interessou? ' +
+    'É só abrir esta página de novo e acrescentar o idioma.</p></div>';
+  $("#barra").style.display = "none";
+  window.scrollTo(0,0);
+}
+
+function fechado(){
+  $("#app").innerHTML =
+    '<div class="pronto"><div class="tick" style="color:var(--alerta)">•</div>' +
+    '<h2>As respostas já fecharam</h2>' +
+    '<p>Esta parte do workshop foi encerrada. Fala com alguém da equipe se precisar entrar no grupo.</p></div>';
+  $("#barra").style.display = "none";
+  window.scrollTo(0,0);
+}
+
+/* ---------- modo setup: ?setup=1 ---------- */
+if (new URLSearchParams(location.search).get("setup")) {
+  $("#app").style.display = "none"; $("#barra").style.display = "none";
+  const s = $("#setup"); s.style.display = "block";
+  s.innerHTML =
+    "<h2 style='font-size:19px'>Configuração</h2>" +
+    "<p style='color:#9aa08f'>Cole o <b>URL do app da Web</b> do Apps Script " +
+    "(ver apps_script.gs). Ele fica salvo neste aparelho e vale para testar. " +
+    "Para valer no dia, cole tambem na constante <code>API_URL</code> dentro do arquivo.</p>" +
+    "<textarea id='pre' placeholder='https://script.google.com/macros/s/AKfy.../exec'>" +
+    (API_URL || "") + "</textarea>" +
+    "<p><button class='enviar' id='salvar'>Salvar e testar</button></p><pre id='saida'></pre>";
+  $("#salvar").addEventListener("click", async () => {
+    const url = $("#pre").value.trim();
+    try { localStorage.setItem("poliglotar_api", url); } catch(e){}
+    API_URL = url;
+    $("#saida").textContent = "Testando…";
+    try {
+      const r = await fetch(url, {cache:"no-store"});
+      const j = await r.json();
+      $("#saida").textContent = j.ok
+        ? "OK. A planilha respondeu com " + j.n + " resposta(s). Salvo neste aparelho."
+        : "A API respondeu, mas com erro: " + (j.erro || "?");
+    } catch (e) {
+      $("#saida").textContent = "Não consegui falar com esse URL. " +
+        "Confira se a implantação está como \"Qualquer pessoa\" e se você copiou o link do app da Web. " + e;
+    }
+  });
+}
+
+/* ---------- se a pessoa já respondeu, reabre com tudo preenchido ---------- */
+(function restaurar(){
+  if (!ULTIMA) return;
+  $("#nome").value  = ULTIMA.nome  || "";
+  $("#email").value = ULTIMA.email || "";
+  $("#criarConta").checked = ULTIMA.criarConta === "sim";
+  confirmouExcesso = ULTIMA.confirmou === "sim";
+  String(ULTIMA.tempos || "").split(",").forEach(par => {
+    const [c,m] = par.split(":");
+    if (c && +m) { sel.add(c.trim()); minutos[c.trim()] = +m; }
+  });
+  String(ULTIMA.idiomas || "").split(",").forEach(x => {
+    x = x.trim();
+    if (x.toLowerCase().startsWith("livre:")) {
+      const bruto = x.slice(6).trim();
+      LIVRES.set("livre:" + normalizar(bruto), bruto.charAt(0).toUpperCase() + bruto.slice(1));
+    }
+  });
+  document.querySelectorAll(".chip").forEach(b => {
+    if (sel.has(b.dataset.cod)) b.setAttribute("aria-pressed","true");
+  });
+  $("#enviar").textContent = "Atualizar";
+})();
+
+/* ---------- se as respostas já fecharam, nem mostra o formulário ----------
+   Falha em aberto: se a checagem não responder, o formulário aparece. Recusar
+   alguém por causa de um erro de rede seria pior do que aceitar tarde. */
+(async function checarAberto(){
+  if (!API_URL) return;
+  try {
+    const r = await fetch(API_URL, {cache:"no-store"});
+    const j = await r.json();
+    if (j && j.aberto === false) fechado();
+  } catch(e){}
+})();
+
+render();
+</script>
+</body>
+</html>
