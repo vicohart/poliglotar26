@@ -41,7 +41,7 @@ const EVENTO = {
   titulo:    "O Poliglotar não acaba no domingo",
   // URL público desta página de captação. Entra no painel (tela 0) e no QR.
   // NÃO gere o QR antes de este valor estar definitivo.
-  urlCaptura:"",
+  urlCaptura:"https://poliglotar26.vercel.app",
   // Endpoint do Apps Script (POST grava, GET devolve tudo).
   urlApi:    "https://script.google.com/macros/s/AKfycbzN1S79Cqia2YtJjDqLN3-wmZduHIwr3AaGIGMvCETLVu43BiRTnqafcTlFcCMe0lND/exec",
 };

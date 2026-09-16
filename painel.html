@@ -134,7 +134,7 @@ tr.top3 td.badge::after{content:" · top 3";color:var(--alerta);font-size:.8em}
 </section>
 
 <div class="rodape">
-  <span>← → para navegar · <b>D</b> dados · <b>T</b> teste · <b>F</b> congelar</span>
+  <span>← → para navegar · <b>D</b> dados · <b>T</b> teste · <b>F</b> congelar · <b>C</b> confirmar</span>
   <span id="status"></span>
   <span class="pontos" id="pontos"></span>
 </div>
@@ -166,6 +166,10 @@ tr.top3 td.badge::after{content:" · top 3";color:var(--alerta);font-size:.8em}
 <script src="dados.js"></script>
 <script>
 const $ = s => document.querySelector(s);
+/* Ensaio em outra comunidade sem editar arquivo: painel.html?comunidade=EQUIPE26
+   (quinta, Natural Team). Sem o parametro vale o EVENTO.comunidade do dados.js. */
+const _param = new URLSearchParams(location.search);
+if (_param.get("comunidade")) EVENTO.comunidade = _param.get("comunidade").trim().toUpperCase();
 let respostas = [];      // {nome, tempos:{cod:min}, livres:[str]}
 let tela = 0, csvTimer = null, congelado = false, aberto = true;
 const TELAS = ["t0","t1","t2","t3","t4","t5"];
@@ -380,6 +384,7 @@ addEventListener("keydown", e => {
   if (e.key === "Escape") abrirConfig(false);
   if (e.key.toLowerCase() === "t") { gerarTeste(); }
   if (e.key.toLowerCase() === "f") { congelado = !congelado; render(); }
+  if (e.key.toLowerCase() === "c") { confirmarDesafios(); }
 });
 
 function abrirConfig(v){ $("#config").style.display = v ? "block" : "none"; }
@@ -419,6 +424,97 @@ $("#usarColado").addEventListener("click", () => {
   respostas = interpretar(parseDelim($("#colado").value));
   render(); abrirConfig(false);
 });
+
+/* ---------- confirmar desafios (tecla C) ----------
+   Monta a lista de desafios COM OS MESMOS NÚMEROS que estão na tela e publica
+   na planilha, aba "desafios", com status pendente. O COF cria a partir dali.
+   Deliberadamente NÃO é o COF que recalcula: se ele refizesse a conta a partir
+   das respostas cruas, os números dele poderiam divergir dos que o Victor
+   acabou de ler em voz alta. Uma conta, um lugar. */
+function montarDesafios(){
+  /* Emite valores PRONTOS PARA O BANCO, não intenção. O COF escreve direto na
+     tabela rest_api_communitychallenge, então não há camada de aplicação para
+     converter nada.
+
+     🔴 goal_per_person vive na UNIDADE DA MÉTRICA, não na unidade de tela.
+        class_time  -> SEGUNDOS  (horas x 3600)
+        micro_levels-> contagem crua
+     Isto já deu errado em 31/08: três sementes gravaram horas numa coluna de
+     segundos e a Turma Semente leu "Meta: 0.0 h por pessoa". A tela estava
+     certa; o dado é que estava errado. */
+  const SEGUNDOS_POR_HORA = 3600;
+  const por = agregar();
+  const hoje = new Date();
+  const iso = d => d.toISOString().slice(0,10);
+  const inicio = iso(hoje);
+  /* O CHECK do banco e ESTRITO: ends_on > starts_on. Confirmar no ultimo dia do
+     mes daria starts_on == ends_on e o INSERT seria RECUSADO — na frente da
+     sala. Empurra para o dia seguinte quando isso acontecer. (COF leu a
+     constraint no pg_constraint em 15/09.) */
+  const depoisDe = (d, minimo) => {
+    const alvo = new Date(d);
+    const base = new Date(minimo);
+    if (alvo <= base) alvo.setDate(base.getDate() + 1);
+    return iso(alvo);
+  };
+  const fimMes = depoisDe(new Date(hoje.getFullYear(), hoje.getMonth()+1, 0), hoje);
+  const fimAno = depoisDe(new Date(hoje.getFullYear()+1, hoje.getMonth(), hoje.getDate()), hoje);
+  const out = [];
+  Object.entries(por)
+    .filter(([c,d]) => EH_FLUENCY.has(c) && d.pessoas.length >= LIMITE_FLUENCY)
+    .sort((a,b) => b[1].pessoas.length - a[1].pessoas.length)
+    .forEach(([cod,d]) => {
+      const n = d.pessoas.length;
+      const horas = metaAulasMensalPorPessoa(d.minutos, n);
+      out.push({
+        metric: "class_time", language: cod,
+        goal_per_person: Math.round(horas * SEGUNDOS_POR_HORA),
+        unidade_db: "seconds",
+        starts_on: inicio, ends_on: fimMes, min_participants: LIMITE_FLUENCY,
+        open_to_anyone: true,
+        rotulo: nomeDe(cod) + " — " + horasBonito(horas) + " de aula por pessoa no mês",
+        pessoas: n, nomes: d.pessoas.join(", ")
+      });
+      const mic = microNiveisAno(cod, d.minutos, n);
+      if (horasPorMicroNivel(cod) && mic >= 0.5) {
+        out.push({
+          metric: "micro_levels", language: cod,
+          goal_per_person: Math.round(mic),
+          unidade_db: "count",
+          starts_on: inicio, ends_on: fimAno, min_participants: LIMITE_FLUENCY,
+          open_to_anyone: true,
+          rotulo: nomeDe(cod) + " — " + niveisBonito(mic) + " micro-níveis por pessoa em 12 meses",
+          pessoas: n, nomes: d.pessoas.join(", ")
+        });
+      }
+    });
+  return out;
+}
+
+async function confirmarDesafios(){
+  const NL = String.fromCharCode(10);   /* sem escapes: eles ja quebraram este arquivo tres vezes */
+  const lista = montarDesafios();
+  if (!lista.length) { alert("Nenhum grupo atingiu o minimo ainda."); return; }
+  const resumo = lista.filter(x => x.metric === "class_time")
+    .map(x => "· " + x.rotulo + "  (" + x.pessoas + " pessoas)").join(NL);
+  const pergunta = ["Confirmar e publicar para o COF criar?", "",
+                    "Comunidade: " + EVENTO.comunidade, "", resumo, "",
+                    lista.length + " desafios no total (aulas + niveis)."].join(NL);
+  if (!confirm(pergunta)) return;
+  const url = $("#csvUrl").value.trim() || EVENTO.urlApi;
+  try {
+    const r = await fetch(url, { method:"POST",
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body: JSON.stringify({ tipo:"desafios", comunidade: EVENTO.comunidade, desafios: lista }) });
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.erro || "recusado");
+    alert(["Publicado: " + j.gravados + " desafios na aba 'desafios', status pendente.",
+           "O COF cria a partir dali. Nada mais e preciso daqui."].join(NL));
+  } catch (e) {
+    alert(["Nao consegui publicar: " + e.message, "",
+           "Os desafios continuam na tela — da para ditar ao COF."].join(NL));
+  }
+}
 
 /* ---------- dados de teste ---------- */
 const NOMES = ["Ana","Bruno","Carla","Diego","Elisa","Fábio","Gabi","Henrique","Iara","João",
