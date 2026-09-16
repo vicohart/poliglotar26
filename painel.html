@@ -78,7 +78,7 @@ tr.top3 td.badge::after{content:" · top 3";color:var(--alerta);font-size:.8em}
   <div class="eyebrow" id="ebEvento">Poliglotar 26 · monte o seu grupo de estudos</div>
   <div class="centro">
     <h1 style="font-size:5.5vh;margin-bottom:4vh">Dois minutos. Comece por aqui.</h1>
-    <img id="qrImg" src="qr.png" alt="" style="width:34vh;height:34vh;background:#fff;
+    <img id="qrImg" src="qr.svg" alt="" style="width:34vh;height:34vh;background:#fff;
          border-radius:1.5vh;padding:1.5vh;display:none">
     <div id="urlGrande" style="font-size:4.2vh;font-weight:700;margin-top:3vh;
          letter-spacing:-.01em;color:var(--verde-claro);word-break:break-all"></div>
@@ -554,7 +554,7 @@ else abrirConfig(true);
     const img = $("#qrImg");
     img.onload = () => { img.style.display = "block"; };
     img.onerror = () => { img.style.display = "none"; };
-    img.src = "qr.png?v=" + Date.now();
+    img.src = "qr.svg?v=" + Date.now();
   } else {
     alvo.textContent = "— endereço ainda não definido —";
     alvo.style.color = "var(--alerta)";
