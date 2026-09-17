@@ -300,7 +300,7 @@ function render(){
       (so ? "" :
         `<div class="metas">
            <div class="meta"><div class="v">${horasBonito(meta)}</div>
-             <div class="k">de aula por pessoa / mês</div></div>` +
+             <div class="k">de aula por pessoa / 30 dias</div></div>` +
         /* Idioma escrito à mão não tem dado de dificuldade — mostrar "+0,0 níveis"
            pareceria defeito. Melhor não mostrar a estatística. */
         (horasPorMicroNivel(cod)
@@ -351,8 +351,6 @@ function render(){
     [String(codigos.length), "idiomas nesta sala", naFluency + " deles a Fluency já tem"],
     [mediaIdiomas.toFixed(1).replace(".", ","), "idiomas por pessoa, em média", "a média do brasileiro é 1"],
     [String(campeaoN), "idiomas — " + campeao.nome, "a pessoa mais poliglota da sala"],
-    [String(pessoasB2), "pessoas do zero ao B2 em espanhol",
-     "é o que estas horas dariam, se vocês cumprirem"],
   ];
   const boxC = $("#curiosidades");
   if (boxC) {
@@ -457,7 +455,9 @@ function montarDesafios(){
     if (alvo <= base) alvo.setDate(base.getDate() + 1);
     return iso(alvo);
   };
-  const fimMes = depoisDe(new Date(hoje.getFullYear(), hoje.getMonth()+1, 0), hoje);
+  /* Janela de 30 dias a partir de hoje. A meta e calculada POR MES (30 dias de minutos
+     declarados); fechar no fim do mes corrente dava 11 dias no ensaio, com a mesma meta. */
+  const fimMes = depoisDe(new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() + 30), hoje);
   const fimAno = depoisDe(new Date(hoje.getFullYear()+1, hoje.getMonth(), hoje.getDate()), hoje);
   const out = [];
   Object.entries(por)
@@ -472,7 +472,7 @@ function montarDesafios(){
         unidade_db: "seconds",
         starts_on: inicio, ends_on: fimMes, min_participants: LIMITE_FLUENCY,
         open_to_anyone: true,
-        rotulo: nomeDe(cod) + " — " + horasBonito(horas) + " de aula por pessoa no mês",
+        rotulo: nomeDe(cod) + " — " + horasBonito(horas) + " de aula por pessoa em 30 dias",
         pessoas: n, nomes: d.pessoas.join(", ")
       });
       const mic = microNiveisAno(cod, d.minutos, n);
