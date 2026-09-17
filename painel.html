@@ -219,7 +219,7 @@ function interpretar(linhas){
       else if (p && !(p in tempos)) tempos[p] = tempos[p] || 0;
     });
     return { nome: (r[cN]||("Pessoa "+(idx+1))).trim(), tempos, livres };
-  }).filter(r => Object.keys(r.tempos).length || r.livres.length);
+  }).filter(r => (Object.keys(r.tempos).length || r.livres.length) && !/^zzz/i.test(r.nome));  /* linhas de teste (nome ZZZ...) nunca entram na tela */
 }
 
 /* Respostas vindas da API (JSON) — sem adivinhação de colunas. */
@@ -252,7 +252,7 @@ function interpretarJson(lista){
       else if (x && !(x in tempos)) tempos[x] = tempos[x] || 0;
     });
     return { nome: String(r.nome || ("Pessoa " + (idx+1))).trim(), tempos, livres };
-  }).filter(r => Object.keys(r.tempos).length || r.livres.length);
+  }).filter(r => (Object.keys(r.tempos).length || r.livres.length) && !/^zzz/i.test(r.nome));  /* linhas de teste (nome ZZZ...) nunca entram na tela */
 }
 
 /* ---------- agregação ---------- */

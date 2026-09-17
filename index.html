@@ -99,9 +99,9 @@ button.enviar[disabled]{opacity:.4;cursor:default}
     </div>
   </div>
 
-  <label class="q" for="email">Seu e-mail
+  <label class="q" for="email">Seu e-mail (obrigatório)
     <span class="hint">Para te mandar o link do seu grupo depois do Poliglotar.</span></label>
-  <input type="email" id="email" autocomplete="email" inputmode="email" maxlength="120">
+  <input type="email" id="email" autocomplete="email" inputmode="email" maxlength="120" required>
 
   <label class="consent">
     <input type="checkbox" id="criarConta">
@@ -257,11 +257,14 @@ function render(){
   $("#avisoTotal").textContent = fmt(total);
   $("#totalNum").style.color = excesso ? "var(--alerta)" : "var(--branco)";
 
-  const ok = $("#nome").value.trim().length >= 2 && sel.size >= 1 &&
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test($("#email").value.trim());
+  const ok = $("#nome").value.trim().length >= 2 && sel.size >= 1 && emailOk &&
              (!excesso || confirmouExcesso);
   $("#enviar").disabled = !ok;
+  $("#enviar").title = ok ? "" : (emailOk ? "" : "Preencha o e-mail para enviar");
 }
 $("#nome").addEventListener("input", render);
+$("#email").addEventListener("input", render);
 $("#confirmo").addEventListener("click", () => { confirmouExcesso = true; render(); });
 $("#ajustar").addEventListener("click", () => {
   confirmouExcesso = false;
