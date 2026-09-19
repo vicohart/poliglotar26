@@ -299,8 +299,8 @@ function render(){
           `<span><i>${k+1}</i>${p}</span>`).join("")}</div>` +
       (so ? "" :
         `<div class="metas">
-           <div class="meta"><div class="v">${horasBonito(meta)}</div>
-             <div class="k">de aula por pessoa / 30 dias</div></div>` +
+           <div class="meta"><div class="v">${horasBonito(meta * 12)}</div>
+             <div class="k">de aula por pessoa / ano (${horasBonito(meta)} por mês)</div></div>` +
         /* Idioma escrito à mão não tem dado de dificuldade — mostrar "+0,0 níveis"
            pareceria defeito. Melhor não mostrar a estatística. */
         (horasPorMicroNivel(cod)
@@ -455,9 +455,9 @@ function montarDesafios(){
     if (alvo <= base) alvo.setDate(base.getDate() + 1);
     return iso(alvo);
   };
-  /* Janela de 30 dias a partir de hoje. A meta e calculada POR MES (30 dias de minutos
-     declarados); fechar no fim do mes corrente dava 11 dias no ensaio, com a mesma meta. */
-  const fimMes = depoisDe(new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() + 30), hoje);
+  /* Victor, 19/09: os desafios de aulas tambem duram UM ANO, como os de niveis. A meta mensal
+     e multiplicada por 12; meta de um mes numa janela de um ano seria batida no primeiro mes. */
+  const MESES_AULAS = 12;
   const fimAno = depoisDe(new Date(hoje.getFullYear()+1, hoje.getMonth(), hoje.getDate()), hoje);
   const out = [];
   Object.entries(por)
@@ -465,14 +465,14 @@ function montarDesafios(){
     .sort((a,b) => b[1].pessoas.length - a[1].pessoas.length)
     .forEach(([cod,d]) => {
       const n = d.pessoas.length;
-      const horas = metaAulasMensalPorPessoa(d.minutos, n);
+      const horas = metaAulasMensalPorPessoa(d.minutos, n) * MESES_AULAS;
       out.push({
         metric: "class_time", language: cod,
         goal_per_person: Math.round(horas * SEGUNDOS_POR_HORA),
         unidade_db: "seconds",
-        starts_on: inicio, ends_on: fimMes, min_participants: LIMITE_FLUENCY,
+        starts_on: inicio, ends_on: fimAno, min_participants: LIMITE_FLUENCY,
         open_to_anyone: true,
-        rotulo: nomeDe(cod) + " — " + horasBonito(horas) + " de aula por pessoa em 30 dias",
+        rotulo: nomeDe(cod) + " — " + horasBonito(horas) + " de aula por pessoa em 12 meses",
         pessoas: n, nomes: d.pessoas.join(", ")
       });
       const mic = microNiveisAno(cod, d.minutos, n);
